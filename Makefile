@@ -1,12 +1,12 @@
 # RafOS Makefile
 #
 # Directories
-BOOTLOADER_DIR := bootloader
-OUTPUT_DIR := output
+BOOTLOADER_DIR := boot
+OUTPUT_DIR := out
 
 # Files
-BOOTLOADER_SRC := $(BOOTLOADER_DIR)/bootloader.asm
-BOOTLOADER_IMG := $(OUTPUT_DIR)/bootloader.img
+BOOTLOADER_SRC := $(BOOTLOADER_DIR)/boot.asm
+BOOTLOADER_IMG := $(OUTPUT_DIR)/boot.img
 
 # Assembler
 ASM := nasm
