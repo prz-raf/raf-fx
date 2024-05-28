@@ -1,29 +1,16 @@
-# RafOS Makefile
-#
+# raf-fx Makefile
+
 # Directories
 BOOTLOADER_DIR := boot
 OUTPUT_DIR := out
 
-# Files
-BOOTLOADER_SRC := $(BOOTLOADER_DIR)/boot.asm
-BOOTLOADER_IMG := $(OUTPUT_DIR)/boot.img
-
-# Assembler
-ASM := nasm
-ASM_FLAGS := -f bin
-
-# Default target
-all: $(OUTPUT_DIR) $(BOOTLOADER_IMG)
+# Include bootloader Makefile
+include $(BOOTLOADER_DIR)/Makefile
 
 # Ensure that output directory exists
 $(OUTPUT_DIR):
 	@echo "Creating output directory"
 	mkdir -p $(OUTPUT_DIR)
-
-# Compile bootloader assembly to bootloader image
-$(BOOTLOADER_IMG): $(BOOTLOADER_SRC) | $(OUTPUT_DIR)
-	@echo "Compiling $(BOOTLOADER_SRC) to $(BOOTLOADER_IMG)"
-	$(ASM) $(ASM_FLAGS) -o $@ $<
 
 # Clean the output directory
 clean:
@@ -39,3 +26,4 @@ menuconfig:
 	@echo "Menuconfig is yet to be implemented..."
 
 .PHONY: all clean defconfig menuconfig
+
