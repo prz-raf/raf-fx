@@ -19,21 +19,18 @@ _start:
 	mov es, ax				; set extra segment to 0
 	sti					; enable interrupts
 	
-	mov si, init_msg			; load the address of init message, beginning of message printing
-	mov ah, 0x0e				; BIOS function code to print characters
-
-; keep printing inital message characters
-print_init_msg:
-	lodsb					; helper function that loads byte DS:SI (data segment + source index) into AL and increments SI
-	cmp al, 0				; check if AL is 0
-	je load_kernel				; jump to print_init_done if the last value in AL was 0
-	int 0x10				; BIOS interrupt, print character from AL
-	jmp print_init_msg			; repeat this step until AL is not 0
+	jmp setup_gdt
 	
+; keep printing inital message characters
+print_msg_init:
+	mov ah, 0xe				; BIOS function code to print characters
+	mov si, msg_init			; load the address of init message
+	call print_info				; print the messgae
+
 ; load kernel from the disk. 
 load_kernel:
 	mov ah, 0x02				; BIOS read sector function
-	mov al, 0x01				; read 1 sector
+	mov al, 9				; read 9 sectors
 	mov ch, 0x00				; cylinder 0
 	mov cl, 0x02				; sector 2
 	mov dh, 0x00				; head 0
@@ -41,32 +38,116 @@ load_kernel:
 	mov bx, 0x1000				; Address to load the kernel, (0x0000:0x1000)
 	int 0x13				; BIOS interrupt to read the hard drive
 
-	jc load_kernel_error			; jump to load_kernel_error if carry flag is set
-	jmp kernel_loaded			; if all good, let's continue in kernel_loaded
+	jc disk_read_failed			; jump to disk_read_failed if carry flag is set
+	jmp disk_read_success			; if all good, let's continue in disk_read_success
 
-; if an error has been encountered (carry flag is set), print an error and halt the CPU
-load_kernel_error:
-	mov ah, 0x0e				; BIOS function to print characters
-	mov si, load_kernel_error_msg		; load the address of error message
+; inidcator whether disk read was success (carry flag was not set)
+disk_read_success:
+	mov ah, 0x0e
+	mov si, msg_disk_read_success
+	call print_info
+	jmp gdt_start
 
-; keep printing kernel load error until AL is 0
-print_load_kernel_error:
+; indicator whether disk read failed (carry flag was set)
+disk_read_failed:
+	mov ah, 0x0e
+	mov si, msg_disk_read_failed
+	call print_error
+
+
+; define GDT (Global Descriptor Table) and GDT descriptor
+gdt_start:
+	mov ah, 0x0e
+	mov si, msg_gdt_start
+	call print_info				; inform user that gdt_start has been reached
+
+	gdt_null:				; null descriptor (mandatory)	
+		dq 0x0000000000000000
+	
+	gdt_code:				; code segment descriptor		
+		dq 0x00CF9A000000FFFF
+		
+		mov ah, 0x0e
+		mov si, msg_gdt_code
+		call print_info
+
+	gdt_data:				; data segment descriptor
+		mov ah, 0x0e
+		mov si, msg_gdt_data
+		call print_info
+		
+		dq 0x00CF92000000FFFF
+
+gdt_end:
+	mov ah, 0x0e
+	mov si, msg_gdt_end
+	call print_info				; inform user that we reached this point
+
+gdt_descriptor:
+	dw gdt_end - gdt_start - 1 		; limit (size of GDT - 1)
+	dd gdt_start				; base address of GDT
+
+; load GDT and enable protected mode, then jump to kernel entry point
+setup_gdt:
+	cli					; clear interrupts
+	lgdt [gdt_descriptor]			; load global table descriptor register
+	mov eax, cr0				; move CR0 value to EAX (CR0 indicates if protected mode is on)
+	or eax, 0x1				; set PE bit (bit 0) 
+	mov cr0, eax				; move EAX back to CR0 to enable protected mode
+	jmp CODE_SEG:init_pm			; far jump to flush the pipeline and update CS
+
+	CODE_SEG equ gdt_code - gdt_start	; calculate code segment offset
+	DATA_SEG equ gdt_data - gdt_start	; calculate data segment offset
+	
+print_init_pm:
+	mov ah, 0x0e				
+	mov si, msg_entering_protected_mode
+	call print_info
+	
+init_pm:
+	mov ax, DATA_SEG			; load data segment descriptor
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+	mov ss, ax
+	mov esp, 0x7b00				; set the stack pointer to for protected mode
+	
+	jmp 0x08:0x1000				; jump to kernel entry point, 0x08 is the code segment selector
+
+; function to print info and debug messages
+print_info:
 	lodsb					; load the byte from SI into AL and increment SI
 	cmp al, 0				; check if loaded byte is 0
-	je halt					; if loaded byte is 0, jump to halt
+	je return				; if loaded byte is 0, return from function
 	int 0x10				; BIOS interrupt to print character in AL
-	jmp print_load_kernel_error		; repeat until message is printed
+	jmp print_info				; repeat until message is printed
 
-; TO BE CONTINUED
-kernel_loaded:
-	jmp $
+; function to print error messages and halt the cpu
+print_error:
+	lodsb
+	cmp al, 0
+	je halt
+	int 0x10
+	jmp print_error
+
+
+; helper function, return from function call
+return:
+	ret
 	
 halt:
 	cli					; clear interrupts
 	hlt					; halt CPU
 	
-	init_msg db 'Booting raf-fx...', 13, 10, 0
-	load_kernel_error_msg db 'Unable to read kernel from disk!', 0
+	msg_init 			db 	'Booting raf-fx...', 13, 10, 0
+	msg_disk_read_success		db 	'Disk read success!', 13, 10, 0
+	msg_disk_read_failed		db	'Disk read failed!', 13, 10, 0
+	msg_gdt_start			db	'Preparing GDT...', 13, 10, 0
+	msg_gdt_code			db	'Setting code descriptor', 13, 10, 0
+	msg_gdt_data			db	'Setting data descriptor', 13, 10, 0
+	msg_gdt_end			db	'Preparing GDT done...', 13, 10, 0
+	msg_entering_protected_mode 	db 	'Entering protected mode...', 13, 10, 0
 	
 	times 510-($-$$) db 0 			; pad of the rest of the sector with zeros
 	dw 0xaa55				; boot signature
