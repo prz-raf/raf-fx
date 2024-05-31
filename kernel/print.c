@@ -10,9 +10,12 @@
 
 #include "include/print.h"
 
+#define VIDEO_MEMORY 0xb8000
+
+
 void printk(const char *str){
 	// address below is the starting address of the video memory for text mode on x86
-	volatile char *v = (volatile char*)0xb800;
+	volatile char *v = (volatile char*)VIDEO_MEMORY;
 
 	while(*str){
 		// assign character byte

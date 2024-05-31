@@ -13,17 +13,21 @@ BOOTLOADER_IMG := $(OUTPUT_DIR)/boot.img
 
 # kernel files
 KERNEL_SRC := $(KERNEL_DIR)/kernel.c $(KERNEL_DIR)/print.c
-KERNEL_OBJS := $(addprefix $(OBJ_DIR)/, $(notdir $(KERNEL_SRC:.c=.o)))
+KERNEL_ASM := $(KERNEL_DIR)/entry.asm
+KERNEL_OBJS := $(addprefix $(OBJ_DIR)/, $(notdir $(KERNEL_SRC:.c=.o))) $(addprefix $(OBJ_DIR)/, $(notdir $(KERNEL_ASM:.asm=.o)))
 KERNEL_BIN := $(OUTPUT_DIR)/kernel.bin
 
 # result file
-RESULT_IMG := $(OUTPUT_DIR)/raf-fx
+RESULT_IMG := $(OUTPUT_DIR)/boot-image
 
 # tools
 ASM := nasm
-ASM_FLAGS := -f bin
+ASM_BOOT_FLAGS := -f bin
+ASM_ENTRY_FLAGS := -f elf32
+
 CC := gcc
 CFLAGS := -m32 -ffreestanding -fno-pic -O2 -Wall -Wextra -I$(INCLUDE_DIR)
+
 LD := ld
 LDFLAGS := -m elf_i386 -Ttext 0x1000 --oformat binary -e _start
 
@@ -40,15 +44,20 @@ $(OBJ_DIR):
 	@echo "Creating object directory"
 	@mkdir -p $(OBJ_DIR)
 
-# compile bootloader assembly to bootloader image
+# assemble bootloader to bootloader image
 $(BOOTLOADER_IMG): $(BOOTLOADER_SRC) | $(OBJ_DIR)
 	@echo "Compiling $(BOOTLOADER_SRC) to $(BOOTLOADER_IMG)"
-	@$(ASM) $(ASM_FLAGS) -o $@ $<
+	@$(ASM) $(ASM_BOOT_FLAGS) -o $@ $<
 
-# compile kernel source files to kernel object files
+# compile kernel C source files to object files
 $(OBJ_DIR)/%.o: $(KERNEL_DIR)/%.c | $(OBJ_DIR)
 	@echo "Compiling $< to $@"
 	@$(CC) $(CFLAGS) -c -o $@ $<
+
+# assemble kernel assembly source files to object files
+$(OBJ_DIR)/%.o: $(KERNEL_DIR)/%.asm | $(OBJ_DIR)
+	@echo "Assembling $< to $@"
+	@$(ASM) $(ASM_ENTRY_FLAGS) -o $@ $<
 
 # link kernel object files to create the kernel binary
 $(KERNEL_BIN): $(KERNEL_OBJS)
@@ -58,11 +67,10 @@ $(KERNEL_BIN): $(KERNEL_OBJS)
 # create final system image 	
 $(RESULT_IMG): $(BOOTLOADER_IMG) $(KERNEL_BIN)
 	@echo "Creating system image $(RESULT_IMG)"
-	@dd if=$(BOOTLOADER_IMG) of=$@ bs=512 count=1 > /dev/null 2>&1
-	@dd if=$(KERNEL_BIN) of=$@ bs=512 seek=1 > /dev/null 2>&1
+	@cat $^ > $@
 	@rm -f $(BOOTLOADER_IMG) $(KERNEL_BIN)
 
-# rlean the output directory
+# clean the output directory
 clean:
 	@rm -r $(OUTPUT_DIR)
 	@echo "Removed $(OUTPUT_DIR) directory"
