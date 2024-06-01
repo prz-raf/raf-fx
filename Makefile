@@ -1,88 +1,85 @@
 # raf-fx Makefile
 
+# convert absolute paths to relative paths for printing
+relpath = $(patsubst $(MAKE_DIR)/%,%,$(1))
+
 # dirs
-BOOTLOADER_DIR := boot
-KERNEL_DIR := kernel
+MAKE_DIR = $(PWD)
+BOOTLOADER_DIR := $(MAKE_DIR)/boot
+CONFIG_DIR := $(MAKE_DIR)/config
+KERNEL_DIR := $(MAKE_DIR)/kernel
+OUTPUT_DIR := $(MAKE_DIR)/out
 INCLUDE_DIR := $(KERNEL_DIR)/include
-OUTPUT_DIR := out
 OBJ_DIR := $(OUTPUT_DIR)/obj
 
-# bootloader files
-BOOTLOADER_SRC := $(BOOTLOADER_DIR)/boot.asm
-BOOTLOADER_IMG := $(OUTPUT_DIR)/boot.img
 
-# kernel files
-KERNEL_SRC := $(KERNEL_DIR)/kernel.c $(KERNEL_DIR)/print.c
-KERNEL_ASM := $(KERNEL_DIR)/entry.asm
-KERNEL_OBJS := $(addprefix $(OBJ_DIR)/, $(notdir $(KERNEL_SRC:.c=.o))) $(addprefix $(OBJ_DIR)/, $(notdir $(KERNEL_ASM:.asm=.o)))
-KERNEL_BIN := $(OUTPUT_DIR)/kernel.bin
+# shared files
+BOOTLOADER_IMG := $(OUTPUT_DIR)/boot.img
+KERNEL_BIN := $(OUTPUT_DIR)/system
+
+
+# config file
+CONFIG_FILE := $(CONFIG_DIR)/make.cfg
+DEFAULT_CONFIG_FILE := $(CONFIG_DIR)/default.cfg
+
+
+# build configuration
+include $(CONFIG_FILE)
+
 
 # result file
-RESULT_IMG := $(OUTPUT_DIR)/boot-image
+RESULT_IMG := $(OUTPUT_DIR)/system-image
 
-# tools
-ASM := nasm
-ASM_BOOT_FLAGS := -f bin
-ASM_ENTRY_FLAGS := -f elf32
 
-CC := gcc
-CFLAGS := -m32 -ffreestanding -fno-pic -O2 -Wall -Wextra -I$(INCLUDE_DIR)
+export MAKE_DIR BOOTLOADER_DIR CONFIG_DIR KERNEL_DIR OUTPUT_DIR OBJ_DIR CONFIG_FILE KERNEL_BIN BOOTLOADER_IMG RELATIVE_PATH_CMD
 
-LD := ld
-LDFLAGS := -m elf_i386 -Ttext 0x1000 --oformat binary -e _start
 
-# default target
 all: $(OUTPUT_DIR) $(OBJ_DIR) $(RESULT_IMG)
+
+$(BOOTLOADER_IMG):
+	@$(MAKE) -C boot --no-print-directory
+	
+$(KERNEL_BIN):
+	@$(MAKE) -C kernel --no-print-directory
 
 # ensure that output directory exists
 $(OUTPUT_DIR):
-	@echo "Creating output directory"
+	@echo "Creating\t\t$(call relpath, $(OUTPUT_DIR)) directory"
 	@mkdir -p $(OUTPUT_DIR)
 	
 # ensure that object directory exists
 $(OBJ_DIR):
-	@echo "Creating object directory"
+	@echo "Creating\t\t$(call relpath, $(OBJ_DIR)) directory"
 	@mkdir -p $(OBJ_DIR)
 
-# assemble bootloader to bootloader image
-$(BOOTLOADER_IMG): $(BOOTLOADER_SRC) | $(OBJ_DIR)
-	@echo "Compiling $(BOOTLOADER_SRC) to $(BOOTLOADER_IMG)"
-	@$(ASM) $(ASM_BOOT_FLAGS) -o $@ $<
-
-# compile kernel C source files to object files
-$(OBJ_DIR)/%.o: $(KERNEL_DIR)/%.c | $(OBJ_DIR)
-	@echo "Compiling $< to $@"
-	@$(CC) $(CFLAGS) -c -o $@ $<
-
-# assemble kernel assembly source files to object files
-$(OBJ_DIR)/%.o: $(KERNEL_DIR)/%.asm | $(OBJ_DIR)
-	@echo "Assembling $< to $@"
-	@$(ASM) $(ASM_ENTRY_FLAGS) -o $@ $<
-
-# link kernel object files to create the kernel binary
-$(KERNEL_BIN): $(KERNEL_OBJS)
-	@echo "Linking $(KERNEL_OBJS) to create $(KERNEL_BIN)"
-	@$(LD) $(LDFLAGS) -o $@ $(KERNEL_OBJS)
-
-# create final system image 	
+# create full system image with bootloader
 $(RESULT_IMG): $(BOOTLOADER_IMG) $(KERNEL_BIN)
-	@echo "Creating system image $(RESULT_IMG)"
-	@cat $^ > $@
-	@rm -f $(BOOTLOADER_IMG) $(KERNEL_BIN)
+ifeq ($(CREATE_BOOTABLE_IMAGE), y)
+		@echo "Creating\t\tsystem image $(call relpath,$(RESULT_IMG))"
+		@cat $^ > $@
+		@rm -f $(BOOTLOADER_IMG) $(KERNEL_BIN)
+endif
+
 
 # clean the output directory
 clean:
 	@rm -r $(OUTPUT_DIR)
-	@echo "Removed $(OUTPUT_DIR) directory"
+	@echo "Removed\t\t$(call relpath, $(OUTPUT_DIR)) directory"
 
-# defconfig (to be implemented), set the default configuration
+
+# defconfig, set the default configuration
 defconfig:
-	@echo "Defconfig is yet to be implemented..."
+	@cp $(DEFAULT_CONFIG_FILE) $(CONFIG_FILE)
+	@echo "$(call relpath, $(CONFIG_FILE)) has been updated with $(call relpath, $(DEFAULT_CONFIG_FILE))"
+
 
 # menuconfig (to be implemented), let user set the configuration 
 # manually using interactive menu
 menuconfig:
 	@echo "Menuconfig is yet to be implemented..."
+
+
+
 
 .PHONY: all clean defconfig menuconfig
 

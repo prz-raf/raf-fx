@@ -8,10 +8,9 @@
  */
 
 #include "include/kernel.h"
-#include "include/print.h"
 
 void kernel_main() {
-	printk("Kernel loaded!                                                ");
+	// for now, just stop and enjoy the rest of the day
 	halt_cpu();
 }
 
