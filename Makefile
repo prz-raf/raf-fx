@@ -28,7 +28,7 @@ include $(CONFIG_FILE)
 
 
 # result file
-RESULT_IMG := $(OUTPUT_DIR)/system-image
+RESULT_IMG := $(OUTPUT_DIR)/system-boot
 
 
 export MAKE_DIR BOOTLOADER_DIR CONFIG_DIR KERNEL_DIR OUTPUT_DIR OBJ_DIR CONFIG_FILE KERNEL_BIN BOOTLOADER_IMG RELATIVE_PATH_CMD
@@ -55,7 +55,7 @@ $(OBJ_DIR):
 # create full system image with bootloader
 $(RESULT_IMG): $(BOOTLOADER_IMG) $(KERNEL_BIN)
 ifeq ($(CREATE_BOOTABLE_IMAGE), y)
-		@echo "Creating\t\tsystem image $(call relpath,$(RESULT_IMG))"
+		@echo "Creating\t\t$(call relpath,$(RESULT_IMG)) system image"
 		@cat $^ > $@
 		@rm -f $(BOOTLOADER_IMG) $(KERNEL_BIN)
 endif
@@ -82,4 +82,3 @@ menuconfig:
 
 
 .PHONY: all clean defconfig menuconfig
-

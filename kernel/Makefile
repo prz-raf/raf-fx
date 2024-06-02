@@ -11,10 +11,14 @@ relpath = $(patsubst $(MAKE_DIR)/%,%,$(1))
 INCLUDE_DIR := $(KERNEL_DIR)/include
 
 
-# kernel files
-KERNEL_SRC := $(KERNEL_DIR)/kernel.c
-KERNEL_ASM := $(KERNEL_DIR)/entry.asm
-KERNEL_OBJS := $(addprefix $(OBJ_DIR)/, $(notdir $(KERNEL_SRC:.c=.o))) $(addprefix $(OBJ_DIR)/, $(notdir $(KERNEL_ASM:.asm=.o)))
+# all C and ASM kernel files
+KERNEL_SRC := $(wildcard $(KERNEL_DIR)/*.c)
+KERNEL_ASM := $(wildcard $(KERNEL_DIR)/*.asm)
+
+
+# generate object file names from source file names
+KERNEL_OBJS := $(addprefix $(OBJ_DIR)/, $(notdir $(KERNEL_SRC:.c=.o))) \
+               $(addprefix $(OBJ_DIR)/, $(notdir $(KERNEL_ASM:.asm=.o)))
 
 
 # tools
@@ -47,6 +51,5 @@ $(OBJ_DIR)/%.o: $(KERNEL_DIR)/%.asm | $(OBJ_DIR)
 $(KERNEL_BIN): $(KERNEL_OBJS)
 	@echo "Linking\t\t\t$(call relpath, $(KERNEL_OBJS)) to create $(call relpath, $(KERNEL_BIN))"
 	@$(LD) $(LDFLAGS) -o $@ $(KERNEL_OBJS)
-	
 
 .PHONY: all

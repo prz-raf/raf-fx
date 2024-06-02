@@ -84,9 +84,8 @@ init_pm:
 	mov gs, ax
 	mov ss, ax
 	mov esp, 0x90000			; set the stack pointer to for protected mode
-	
-	
-	;jmp $
+
+	;jmp $					; reminds me of hours spent trying to makes this work. this is a memorial. do not remove 
 	
 	jmp 0x08:KERNEL_OFFSET			; jump to kernel entry point, 0x08 is the code segment selector
 
