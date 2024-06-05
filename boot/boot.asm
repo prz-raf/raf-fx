@@ -146,7 +146,7 @@ gdt_descriptor:
 CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
 
-	KERNEL_OFFSET			equ	0x1000	
+	KERNEL_OFFSET			equ	0x1000
 
 	msg_init 			db 	'Booting raf-fx...', 13, 10, 0
 	msg_disk_read_success		db 	'Disk read success!', 13, 10, 0

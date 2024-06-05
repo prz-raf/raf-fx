@@ -11,7 +11,7 @@
 #include "include/kernel.h"
 #include "include/vga.h"
 
-void kernel_main() {
+__attribute__((section(".text.kernel"))) void kernel_main() {
 	vga_clear_screen(VGA_COLOR_WHITE | VGA_COLOR_BLACK << 4);
 	halt_cpu();
 }

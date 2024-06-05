@@ -9,11 +9,13 @@ relpath = $(patsubst $(MAKE_DIR)/%,%,$(1))
 
 # dirs
 INCLUDE_DIR := $(KERNEL_DIR)/include
+ASM_DIR := $(KERNEL_DIR)/asm
+LD_DIR := $(KERNEL_DIR)/ld
 
 
 # all C and ASM kernel files
 KERNEL_SRC := $(wildcard $(KERNEL_DIR)/*.c)
-KERNEL_ASM := $(wildcard $(KERNEL_DIR)/*.asm)
+KERNEL_ASM := $(wildcard $(ASM_DIR)/*.asm)
 
 
 # generate object file names from source file names
@@ -25,11 +27,11 @@ KERNEL_OBJS := $(addprefix $(OBJ_DIR)/, $(notdir $(KERNEL_SRC:.c=.o))) \
 ASM := nasm
 ASM_FLAGS := -f elf32
 LD := ld
-LDFLAGS := -m elf_i386 -Ttext 0x1000 --oformat binary -e _start
+LDFLAGS := -m elf_i386 -T $(LD_DIR)/linker.ld --oformat binary
 CC := gcc
 CFLAGS := -m32 -ffreestanding -fno-pic -Wall -Wextra -I$(INCLUDE_DIR)
 ifeq ($(OPTIMIZE_DEBUG), y)
-	CFLAGS += -Og
+	CFLAGS += -O2 -g
 else
 	CFLAGS += -O2
 endif
@@ -43,7 +45,7 @@ $(OBJ_DIR)/%.o: $(KERNEL_DIR)/%.c | $(OBJ_DIR)
 	@$(CC) $(CFLAGS) -c -o $@ $<
 
 # assemble kernel assembly source files to object files
-$(OBJ_DIR)/%.o: $(KERNEL_DIR)/%.asm | $(OBJ_DIR)
+$(OBJ_DIR)/%.o: $(ASM_DIR)/%.asm | $(OBJ_DIR)
 	@echo "Assembling\t\t$(call relpath, $<) to $(call relpath, $@)"
 	@$(ASM) $(ASM_FLAGS) -o $@ $<
 

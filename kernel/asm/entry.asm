@@ -8,6 +8,7 @@
 
 [bits 32]
 [extern kernel_main]
+section .text.entry
 global _start
 
 _start:
