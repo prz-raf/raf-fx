@@ -1,4 +1,4 @@
-; kernel.asm
+; kernel/asm/kernel.asm
 
 ; raf-fx main kernel entry point and low level initialization
 

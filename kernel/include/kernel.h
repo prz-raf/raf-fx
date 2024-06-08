@@ -13,5 +13,6 @@
 
 void kernel_main();
 void halt_cpu();
+void print_kernel_info();
 
 #endif // KERNEL_H
