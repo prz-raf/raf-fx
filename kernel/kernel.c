@@ -13,6 +13,7 @@
 
 __attribute__((section(".text.kernel"))) void kernel_main() {
 	vga_clear_screen(VGA_COLOR_WHITE | VGA_COLOR_BLACK << 4);
+	vga_puts("Welcome to raf-fx!\n", VGA_COLOR_WHITE);
 	halt_cpu();
 }
 

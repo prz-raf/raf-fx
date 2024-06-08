@@ -48,12 +48,9 @@ enum vga_color {
     VGA_COLOR_WHITE = 15,
 };
 
-static inline uint16_t vga_entry(char c, uint8_t color);
-static void vga_set_cursor_position(uint8_t x, uint8_t y);
 void vga_clear_screen(uint8_t color);
-void vga_move_cursor(uint8_t x, uint8_t y);
+void vga_scroll(uint8_t color);
 void vga_put_char(char c, uint8_t color, uint8_t x, uint8_t y);
-void vga_print_string(const char *str, uint8_t color, uint8_t x, uint8_t y);
 void vga_puts(const char *str, uint8_t color);
 
 
