@@ -10,6 +10,7 @@
 
 #include "include/idt.h"
 #include "include/isr.h"
+#include "include/kernel.h"
 
 // definte the IDT with specified number of entries (default 256)
 struct idt_entry idt[IDT_ENTRIES];
@@ -42,10 +43,13 @@ void set_idt_entry(int index, uint32_t handler) {
 }
 
 void init_idt() {
+	printk("Setting IDT limit");
 	idt_p.limit = sizeof(idt) - 1;
+	printk("Setting IDT pointer base");
 	idt_p.base = (uint32_t)&idt;
 	
 	// set reserved ISRs 0-31 for CPU exceptions
+	printk("Setting reserved ISRs for CPU exceptions");
 	set_idt_entry(0, (uint32_t)isr0);
 	set_idt_entry(1, (uint32_t)isr1);
 	set_idt_entry(2, (uint32_t)isr2);
@@ -79,13 +83,16 @@ void init_idt() {
 	set_idt_entry(30, (uint32_t)isr30);
 	set_idt_entry(31, (uint32_t)isr31);
 
-	// for now set each IDT entry with default handler, a placeholder
+	// set other IDT entries with default handler, a placeholder
+	printk("Setting IDT placeholders");
 	for (int i=32; i < IDT_ENTRIES; i++) {
 		set_idt_entry(i, (uint32_t)default_handler);
 	}
 	
 	// load IDT using external assembly function
-	load_idt((uint32_t)&idt_p);							
+	printk("Loading IDT table");
+	load_idt((uint32_t)&idt_p);
+	printk("IDT init complete");					
 }
 
 // default handler, placeholder										

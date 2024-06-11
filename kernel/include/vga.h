@@ -52,6 +52,7 @@ void vga_clear_screen(uint8_t color);
 void vga_scroll(uint8_t color);
 void vga_put_char(char c, uint8_t color, uint8_t x, uint8_t y);
 void vga_puts(const char *str, uint8_t color);
+void vga_print_ready();
 
 
 #endif // VGA_H

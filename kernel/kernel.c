@@ -21,11 +21,10 @@
 
 __attribute__((section(".text.kernel"))) void kernel_main() {
 	vga_clear_screen(VGA_COLOR_WHITE | VGA_COLOR_BLACK << 4);
-
-	printk("Initializing IDT");
+	
+	vga_print_ready();
+	
 	init_idt();
-
-	printk("Init complete");
 
 	printk_info();
 
@@ -53,6 +52,9 @@ void printkc(const char *str, uint8_t color) {
 }
 
 void printk_info() {
+	print_logo();
+	vga_puts("\n", VGA_COLOR_WHITE);
+	vga_puts(">>> ", VGA_COLOR_WHITE);
 	vga_puts(KERNEL_NAME, VGA_COLOR_WHITE);
 	vga_puts(" ", VGA_COLOR_WHITE);
 	vga_puts(KERNEL_STAGE, VGA_COLOR_WHITE);
@@ -60,5 +62,19 @@ void printk_info() {
 	vga_puts(KERNEL_VERSION, VGA_COLOR_WHITE);
 	vga_puts(" ", VGA_COLOR_WHITE);
 	vga_puts(KERNEL_LICENCE, VGA_COLOR_WHITE);
+	vga_puts(" <<<", VGA_COLOR_WHITE);
+	vga_puts("\n", VGA_COLOR_WHITE);
+}
+
+void print_logo(){
+	vga_puts("\n", VGA_COLOR_WHITE);
+	vga_puts("\n", VGA_COLOR_WHITE);
+    	vga_puts("               _____           _____        \n", VGA_COLOR_WHITE);
+    	vga_puts("____________ _/ ____\\        _/ ____\\__  ___\n", VGA_COLOR_WHITE);
+    	vga_puts("\\_  __ \\__  \\\\   __\\  ______ \\   __\\\\  \\/  /\n", VGA_COLOR_WHITE);
+    	vga_puts(" |  | \\// __ \\|  |   /_____/  |  |   >    < \n", VGA_COLOR_WHITE);
+    	vga_puts(" |__|  (____  /__|            |__|  /__/\\_ \\\n", VGA_COLOR_WHITE);
+    	vga_puts("            \\/                            \\/\n", VGA_COLOR_WHITE);
+	vga_puts("\n", VGA_COLOR_WHITE);
 	vga_puts("\n", VGA_COLOR_WHITE);
 }

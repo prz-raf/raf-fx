@@ -18,5 +18,6 @@ void halt_cpu();
 void printk(const char *str);
 void printkc(const char *str, uint8_t color);
 void printk_info();
+void print_logo();
 
 #endif // KERNEL_H

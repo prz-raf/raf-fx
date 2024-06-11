@@ -10,6 +10,7 @@
 
 #include "include/vga.h"
 #include "include/io.h"
+#include "include/kernel.h"
 
 // pointer to VGA buffer
 static volatile uint16_t *vga_buffer = (uint16_t *)VGA_BUFFER_ADDR;
@@ -134,4 +135,9 @@ void vga_puts(const char *str, uint8_t color) {
 	}
 
 	vga_set_cursor_position(cursor_x, cursor_y);
+}
+
+// Let them know we're rolling
+void vga_print_ready() {
+	printk("VGA driver ready");
 }
