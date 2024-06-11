@@ -1,3 +1,4 @@
+# boot/Makefile
 # raf-fx bootloader Makefile
 
 # build configuration

@@ -1,4 +1,4 @@
-; boot.asm
+; boot/boot.asm
 ; raf-fx bootloader
 ; Licence: GNU General Public License v3
 ; Author: Przemyslaw Rafalczuk <prz.raf@gmail.com>
@@ -24,7 +24,7 @@ print_msg_init:
 ; load kernel from the disk. 
 load_kernel:
 	mov bx, KERNEL_OFFSET			; Address to load the kernel
-	mov dh, 9				; number of sectors
+	mov dh, 12				; number of sectors
 	mov dl, 0x00				; set the boot drive
 	
 	pusha					; save all general purpose registers

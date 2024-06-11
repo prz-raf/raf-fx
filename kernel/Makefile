@@ -1,3 +1,4 @@
+# kernel/Makefile
 # raf-fx kernel Makefile
 
 # build configuration

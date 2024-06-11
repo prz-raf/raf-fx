@@ -11,8 +11,12 @@
 #ifndef KERNEL_H
 #define KERNEL_H
 
+#include <stdint.h>
+
 void kernel_main();
 void halt_cpu();
-void print_kernel_info();
+void printk(const char *str);
+void printkc(const char *str, uint8_t color);
+void printk_info();
 
 #endif // KERNEL_H
