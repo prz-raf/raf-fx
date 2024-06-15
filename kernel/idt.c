@@ -11,6 +11,7 @@
 #include "include/idt.h"
 #include "include/isr.h"
 #include "include/kernel.h"
+#include "include/io.h"
 
 // definte the IDT with specified number of entries (default 256)
 struct idt_entry idt[IDT_ENTRIES];
@@ -82,17 +83,34 @@ void init_idt() {
 	set_idt_entry(29, (uint32_t)isr29);
 	set_idt_entry(30, (uint32_t)isr30);
 	set_idt_entry(31, (uint32_t)isr31);
+	
+	// set timer interrupt handler
+	printk("Setting timer interrupt handler");
+	set_idt_entry(32, (uint32_t)isr32_handler);
 
+	// set keyboard interrupt handler
+	printk("Setting keyboard interrupt handler");
+	set_idt_entry(33, (uint32_t)isr33_handler);
+	
 	// set other IDT entries with default handler, a placeholder
 	printk("Setting IDT placeholders");
-	for (int i=32; i < IDT_ENTRIES; i++) {
+	for (int i=34; i < IDT_ENTRIES; i++) {
 		set_idt_entry(i, (uint32_t)default_handler);
 	}
+
+	// remap Programmable Interrupt Controller
+	printk("Remapping PIC");
+	remap_pic();
 	
 	// load IDT using external assembly function
 	printk("Loading IDT table");
 	load_idt((uint32_t)&idt_p);
-	printk("IDT init complete");					
+
+	// enable interrupts
+	printk("Enabling interrupts");
+	__asm__ __volatile__("sti");	
+
+	printk("IDT init complete");
 }
 
 // default handler, placeholder										

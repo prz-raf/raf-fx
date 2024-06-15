@@ -10,7 +10,9 @@
 
 #include "include/isr.h"
 #include "include/mayday.h"
+#include "include/io.h"
 
+// reserved interrupts for CPU exceptions
 void isr0(void) { mayday_halt("ISR0 Divide by Zero", "0"); }
 void isr1(void) { mayday_halt("ISR1 Debug Exception", "1"); }
 void isr2(void) { mayday_halt("ISR2 Non-maskable Interrupt", "2"); }
@@ -44,6 +46,16 @@ void isr29(void) { mayday_halt("ISR29 Reserved", "29"); }
 void isr30(void) { mayday_halt("ISR30 Security Exception", "30"); }
 void isr31(void) { mayday_halt("ISR31 Reserved", "31"); }
 
+// ISR stubs
 
+// timer interrupt handler
+void isr32_handler(void) {
+	// for now let's just inform PIC that we received interrupt
+	pic_eoi();
+}
 
+// keyboard interrupt handler
+void isr33_handler(void){
+	pic_eoi();
+}
 

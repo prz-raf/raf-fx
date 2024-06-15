@@ -44,4 +44,7 @@ void isr29(void); 	// reserved
 void isr30(void); 	// security exception
 void isr31(void); 	// reserved
 
+void isr32_handler(void);	// timer interrupt handler
+void isr33_handler(void);	// keyboard interrupt handler
+
 #endif // ISR_H
