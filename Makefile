@@ -12,6 +12,7 @@ KERNEL_DIR := $(MAKE_DIR)/kernel
 OUTPUT_DIR := $(MAKE_DIR)/out
 INCLUDE_DIR := $(KERNEL_DIR)/include
 OBJ_DIR := $(OUTPUT_DIR)/obj
+LD_DIR := $(MAKE_DIR)/ld
 
 
 # shared files
@@ -24,8 +25,17 @@ CONFIG_FILE := $(CONFIG_DIR)/make.cfg
 DEFAULT_CONFIG_FILE := $(CONFIG_DIR)/default.cfg
 
 
+# all objects that need to be linked in the end
+FINAL_OBJS := $(wildcard $(OBJ_DIR)/*.o)
+
+
 # build configuration
 include $(CONFIG_FILE)
+
+
+# tools
+LD := ld
+LDFLAGS := -m elf_i386 -T $(LD_DIR)/linker.ld --oformat binary
 
 
 # result file
@@ -35,13 +45,8 @@ RESULT_IMG := $(OUTPUT_DIR)/system-boot
 export MAKE_DIR BOOTLOADER_DIR CONFIG_DIR KERNEL_DIR OUTPUT_DIR OBJ_DIR CONFIG_FILE KERNEL_BIN BOOTLOADER_IMG RELATIVE_PATH_CMD
 
 
-all: $(OUTPUT_DIR) $(OBJ_DIR) $(RESULT_IMG)
+all: $(OUTPUT_DIR) $(OBJ_DIR) $(BOOTLOADER_IMG) kernel_objs $(KERNEL_BIN) $(RESULT_IMG)
 
-$(BOOTLOADER_IMG):
-	@$(MAKE) -C boot --no-print-directory
-	
-$(KERNEL_BIN):
-	@$(MAKE) -C kernel --no-print-directory
 
 # ensure that output directory exists
 $(OUTPUT_DIR):
@@ -52,6 +57,17 @@ $(OUTPUT_DIR):
 $(OBJ_DIR):
 	@echo "Creating\t\t$(call relpath, $(OBJ_DIR)) directory"
 	@mkdir -p $(OBJ_DIR)
+	
+$(BOOTLOADER_IMG):
+	@$(MAKE) -C boot --no-print-directory
+	
+kernel_objs:
+	@$(MAKE) -C kernel --no-print-directory
+
+# link all object files to create the kernel binary
+$(KERNEL_BIN):
+	@echo "Linking\t\t\tobject files to create $(KERNEL_BIN)"
+	@$(LD) $(LDFLAGS) -o $@ `ls $(OBJ_DIR)/*.o`
 
 # create full system image with bootloader
 $(RESULT_IMG): $(BOOTLOADER_IMG) $(KERNEL_BIN)

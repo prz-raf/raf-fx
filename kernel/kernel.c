@@ -27,7 +27,7 @@ __attribute__((section(".text.kernel"))) void kernel_main() {
 	init_idt();
 
 	printk_info();
-
+	
 	halt_cpu();
 }
 
